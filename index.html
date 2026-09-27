@@ -1,0 +1,1347 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>MySQL Lab — Learn SQL from Scratch</title>
+<link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@300;400;500;700&family=Syne:wght@400;600;700;800&display=swap" rel="stylesheet">
+<style>
+*{margin:0;padding:0;box-sizing:border-box}
+:root{
+  --bg:#0d1117;
+  --bg2:#161b22;
+  --bg3:#21262d;
+  --bg4:#2d333b;
+  --border:#30363d;
+  --border2:#444c56;
+  --green:#3fb950;
+  --green2:#238636;
+  --cyan:#79c0ff;
+  --yellow:#e3b341;
+  --red:#f85149;
+  --purple:#d2a8ff;
+  --orange:#ffa657;
+  --text:#e6edf3;
+  --text2:#8b949e;
+  --text3:#6e7681;
+  --accent:#1f6feb;
+  --accent2:#388bfd;
+}
+html,body{height:100%;overflow:hidden;font-family:'JetBrains Mono',monospace}
+body{background:var(--bg);color:var(--text);display:flex;flex-direction:column}
+
+/* TOP NAV */
+#topbar{height:48px;background:var(--bg2);border-bottom:1px solid var(--border);display:flex;align-items:center;padding:0 16px;gap:16px;flex-shrink:0;z-index:10}
+.logo{font-family:'Syne',sans-serif;font-weight:800;font-size:18px;color:var(--green);letter-spacing:-0.5px;display:flex;align-items:center;gap:8px}
+.logo-icon{width:28px;height:28px;background:var(--green2);border-radius:6px;display:flex;align-items:center;justify-content:center;font-size:14px;font-weight:700;color:#fff;font-family:'JetBrains Mono',monospace}
+.nav-tabs{display:flex;gap:4px;margin-left:16px}
+.nav-tab{padding:6px 14px;border-radius:6px;font-size:12px;cursor:pointer;border:1px solid transparent;color:var(--text2);transition:all .15s;font-family:'JetBrains Mono',monospace}
+.nav-tab:hover{background:var(--bg3);color:var(--text)}
+.nav-tab.active{background:var(--bg3);border-color:var(--border);color:var(--cyan)}
+.badge{background:var(--green2);color:var(--green);font-size:10px;padding:2px 7px;border-radius:10px;font-weight:600;margin-left:auto}
+.progress-bar{height:3px;background:var(--bg3);border-radius:2px;width:120px;overflow:hidden}
+.progress-fill{height:100%;background:linear-gradient(90deg,var(--green),var(--cyan));border-radius:2px;transition:width .4s}
+.topbar-right{margin-left:auto;display:flex;align-items:center;gap:12px}
+.level-badge{font-size:11px;color:var(--yellow);border:1px solid var(--yellow);padding:3px 10px;border-radius:12px;font-weight:500}
+
+/* MAIN LAYOUT */
+#main{display:flex;flex:1;overflow:hidden}
+
+/* SIDEBAR */
+#sidebar{width:260px;background:var(--bg2);border-right:1px solid var(--border);display:flex;flex-direction:column;overflow:hidden;flex-shrink:0}
+.sidebar-header{padding:12px 14px;border-bottom:1px solid var(--border);font-size:11px;font-weight:600;color:var(--text2);text-transform:uppercase;letter-spacing:.8px}
+#lesson-list{flex:1;overflow-y:auto;padding:8px}
+#lesson-list::-webkit-scrollbar{width:4px}
+#lesson-list::-webkit-scrollbar-track{background:transparent}
+#lesson-list::-webkit-scrollbar-thumb{background:var(--border2);border-radius:2px}
+.chapter{margin-bottom:4px}
+.chapter-title{font-size:10px;font-weight:700;color:var(--text3);text-transform:uppercase;letter-spacing:1px;padding:8px 8px 4px;display:flex;align-items:center;gap:6px}
+.lesson-item{padding:8px 10px;border-radius:6px;cursor:pointer;font-size:12px;color:var(--text2);transition:all .15s;display:flex;align-items:center;gap:8px;line-height:1.4}
+.lesson-item:hover{background:var(--bg3);color:var(--text)}
+.lesson-item.active{background:var(--bg3);color:var(--cyan);border-left:2px solid var(--cyan)}
+.lesson-item.done{color:var(--green)}
+.lesson-item.done .lesson-dot{background:var(--green)}
+.lesson-dot{width:6px;height:6px;border-radius:50%;background:var(--border2);flex-shrink:0}
+.lesson-item.active .lesson-dot{background:var(--cyan)}
+
+/* SCHEMA PANEL */
+#schema-panel{width:200px;background:var(--bg2);border-left:1px solid var(--border);display:flex;flex-direction:column;overflow:hidden;flex-shrink:0}
+.schema-header{padding:12px 14px;border-bottom:1px solid var(--border);font-size:11px;font-weight:600;color:var(--text2);text-transform:uppercase;letter-spacing:.8px}
+.schema-content{flex:1;overflow-y:auto;padding:8px}
+.table-card{border:1px solid var(--border);border-radius:6px;margin-bottom:8px;overflow:hidden;font-size:11px}
+.table-name{background:var(--bg3);padding:6px 10px;font-weight:600;color:var(--purple);display:flex;align-items:center;gap:6px}
+.table-name::before{content:"▤";font-size:10px}
+.col-row{padding:4px 10px;border-top:1px solid var(--border);color:var(--text2);display:flex;justify-content:space-between}
+.col-type{color:var(--yellow);font-size:10px}
+.col-pk{color:var(--orange);font-size:9px;margin-left:4px}
+
+/* CENTER = lesson + terminal */
+#center{flex:1;display:flex;flex-direction:column;overflow:hidden;min-width:0}
+
+/* LESSON VIEW */
+#lesson-view{flex:0 0 auto;max-height:35%;border-bottom:1px solid var(--border);overflow-y:auto;background:var(--bg)}
+#lesson-view::-webkit-scrollbar{width:4px}
+#lesson-view::-webkit-scrollbar-thumb{background:var(--border2)}
+.lesson-content{padding:20px 24px}
+.lesson-title{font-family:'Syne',sans-serif;font-size:18px;font-weight:700;color:var(--text);margin-bottom:6px}
+.lesson-subtitle{font-size:12px;color:var(--text2);margin-bottom:16px;line-height:1.6}
+.lesson-body{font-size:12.5px;color:var(--text2);line-height:1.8}
+.lesson-body h3{color:var(--cyan);font-size:12px;margin:14px 0 6px;text-transform:uppercase;letter-spacing:.6px}
+.lesson-body code{background:var(--bg3);color:var(--orange);padding:1px 6px;border-radius:4px;font-family:'JetBrains Mono',monospace;font-size:12px}
+.lesson-body .code-block{background:var(--bg3);border:1px solid var(--border);border-radius:8px;padding:12px 16px;margin:10px 0;font-family:'JetBrains Mono',monospace;font-size:12px;color:var(--text);overflow-x:auto;line-height:1.7}
+.lesson-body .code-block .kw{color:var(--cyan)}
+.lesson-body .code-block .str{color:var(--green)}
+.lesson-body .code-block .num{color:var(--orange)}
+.lesson-body .code-block .cmt{color:var(--text3)}
+.try-btn{margin-top:12px;padding:7px 16px;background:var(--green2);color:var(--green);border:1px solid var(--green);border-radius:6px;cursor:pointer;font-size:12px;font-family:'JetBrains Mono',monospace;transition:all .15s}
+.try-btn:hover{background:#2ea043;color:#fff}
+.lesson-nav{display:flex;gap:8px;margin-top:14px}
+.nav-btn{padding:6px 14px;background:var(--bg3);border:1px solid var(--border);border-radius:6px;color:var(--text2);cursor:pointer;font-size:12px;font-family:'JetBrains Mono',monospace;transition:all .15s}
+.nav-btn:hover{border-color:var(--border2);color:var(--text)}
+.nav-btn.primary{background:var(--accent);border-color:var(--accent);color:#fff}
+.nav-btn.primary:hover{background:var(--accent2)}
+
+/* TERMINAL */
+#terminal-area{flex:1;display:flex;flex-direction:column;overflow:hidden;background:var(--bg)}
+.terminal-header{height:36px;background:var(--bg2);border-bottom:1px solid var(--border);display:flex;align-items:center;padding:0 14px;gap:8px;font-size:11px;color:var(--text2);flex-shrink:0}
+.term-dot{width:12px;height:12px;border-radius:50%}
+.term-dot.r{background:#ff5f57}
+.term-dot.y{background:#febc2e}
+.term-dot.g{background:#28c840}
+.term-title{font-size:12px;color:var(--text2);margin-left:8px}
+.term-tag{margin-left:auto;font-size:10px;background:var(--bg3);border:1px solid var(--border);padding:2px 8px;border-radius:10px;color:var(--green)}
+#output{flex:1;overflow-y:auto;padding:12px 16px;font-size:13px;line-height:1.7;font-family:'JetBrains Mono',monospace}
+#output::-webkit-scrollbar{width:4px}
+#output::-webkit-scrollbar-thumb{background:var(--border2)}
+.line{padding:1px 0}
+.prompt-line{color:var(--cyan)}
+.prompt-prefix{color:var(--green);font-weight:600}
+.output-text{color:var(--text)}
+.output-table{margin:6px 0;overflow-x:auto}
+.output-table table{border-collapse:collapse;font-size:12px;min-width:100%}
+.output-table th{background:var(--bg3);color:var(--cyan);padding:5px 14px;border:1px solid var(--border);text-align:left;font-weight:600}
+.output-table td{padding:4px 14px;border:1px solid var(--border);color:var(--text)}
+.output-table tr:nth-child(even) td{background:rgba(255,255,255,.02)}
+.output-ok{color:var(--green)}
+.output-err{color:var(--red)}
+.output-info{color:var(--yellow)}
+.output-hint{color:var(--text3);font-style:italic;font-size:11px}
+.ai-loading{color:var(--text3);animation:blink .8s infinite}
+@keyframes blink{0%,100%{opacity:1}50%{opacity:.3}}
+.input-row{display:flex;align-items:center;padding:8px 16px;border-top:1px solid var(--border);background:var(--bg2);gap:8px;flex-shrink:0}
+.prompt-symbol{color:var(--green);font-weight:700;font-size:13px;flex-shrink:0;white-space:nowrap}
+#cmd-input{flex:1;background:transparent;border:none;outline:none;color:var(--text);font-family:'JetBrains Mono',monospace;font-size:13px;caret-color:var(--green)}
+#cmd-input::placeholder{color:var(--text3)}
+.input-hint{font-size:10px;color:var(--text3);flex-shrink:0}
+.run-btn{background:var(--green2);color:var(--green);border:1px solid var(--green);padding:5px 12px;border-radius:5px;cursor:pointer;font-size:11px;font-family:'JetBrains Mono',monospace;transition:all .15s;flex-shrink:0}
+.run-btn:hover{background:#2ea043;color:#fff}
+.autocomplete{position:absolute;background:var(--bg3);border:1px solid var(--border2);border-radius:6px;font-size:11px;z-index:100;overflow:hidden;display:none}
+.ac-item{padding:5px 14px;cursor:pointer;color:var(--text2)}
+.ac-item:hover,.ac-item.selected{background:var(--bg4);color:var(--cyan)}
+
+/* TABS for center top */
+.view-tabs{display:flex;border-bottom:1px solid var(--border);background:var(--bg2);flex-shrink:0}
+.view-tab{padding:8px 18px;font-size:12px;cursor:pointer;color:var(--text2);border-bottom:2px solid transparent;transition:all .15s;font-family:'JetBrains Mono',monospace}
+.view-tab:hover{color:var(--text)}
+.view-tab.active{color:var(--cyan);border-bottom-color:var(--cyan)}
+
+/* QUIZ */
+.quiz-box{background:var(--bg2);border:1px solid var(--border);border-radius:8px;padding:16px;margin:12px 0}
+.quiz-q{font-size:13px;color:var(--text);margin-bottom:12px;line-height:1.6}
+.quiz-options{display:flex;flex-direction:column;gap:6px}
+.quiz-opt{padding:8px 14px;border:1px solid var(--border);border-radius:6px;cursor:pointer;font-size:12px;color:var(--text2);transition:all .15s}
+.quiz-opt:hover{border-color:var(--cyan);color:var(--cyan);background:rgba(121,192,255,.06)}
+.quiz-opt.correct{border-color:var(--green);color:var(--green);background:rgba(63,185,80,.08)}
+.quiz-opt.wrong{border-color:var(--red);color:var(--red);background:rgba(248,81,73,.08)}
+
+/* Animations */
+.fade-in{animation:fadeIn .25s ease}
+@keyframes fadeIn{from{opacity:0;transform:translateY(4px)}to{opacity:1;transform:none}}
+
+/* Scrollbar for schema */
+.schema-content::-webkit-scrollbar{width:4px}
+.schema-content::-webkit-scrollbar-thumb{background:var(--border2)}
+</style>
+</head>
+<body>
+
+<div id="topbar">
+  <div class="logo"><div class="logo-icon">M</div>MySQL Lab</div>
+  <div class="nav-tabs">
+    <div class="nav-tab active" onclick="switchMode('learn')">Learn</div>
+    <div class="nav-tab" onclick="switchMode('sandbox')">Sandbox</div>
+    <div class="nav-tab" onclick="switchMode('quiz')">Quiz</div>
+  </div>
+  <div class="topbar-right">
+    <span class="level-badge" id="xp-badge">0 XP</span>
+    <div>
+      <div style="font-size:10px;color:var(--text3);margin-bottom:3px">Progress</div>
+      <div class="progress-bar"><div class="progress-fill" id="progress-fill" style="width:0%"></div></div>
+    </div>
+  </div>
+</div>
+
+<div id="main">
+  <!-- SIDEBAR: Lessons -->
+  <div id="sidebar">
+    <div class="sidebar-header">Curriculum</div>
+    <div id="lesson-list"></div>
+  </div>
+
+  <!-- CENTER -->
+  <div id="center">
+    <div class="view-tabs" id="view-tabs">
+      <div class="view-tab active" onclick="switchTab('lesson')">📖 Lesson</div>
+      <div class="view-tab" onclick="switchTab('terminal')">⌨ Terminal</div>
+    </div>
+
+    <!-- LESSON VIEW -->
+    <div id="lesson-view">
+      <div class="lesson-content" id="lesson-content"></div>
+    </div>
+
+    <!-- TERMINAL -->
+    <div id="terminal-area">
+      <div class="terminal-header">
+        <div class="term-dot r"></div><div class="term-dot y"></div><div class="term-dot g"></div>
+        <span class="term-title">mysql&gt; mysql_lab</span>
+        <span class="term-tag" id="db-indicator">db: mysql_lab</span>
+      </div>
+      <div id="output"></div>
+      <div class="input-row">
+        <span class="prompt-symbol">mysql&gt;</span>
+        <input id="cmd-input" placeholder="Type a SQL query... (e.g. SELECT * FROM students)" autocomplete="off" spellcheck="false"/>
+        <span class="input-hint">↑↓ history · Tab complete</span>
+        <button class="run-btn" onclick="runCmd()">Run ↵</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- SCHEMA PANEL -->
+  <div id="schema-panel">
+    <div class="schema-header">Schema</div>
+    <div class="schema-content" id="schema-content"></div>
+  </div>
+</div>
+
+<script>
+// ── CURRICULUM ────────────────────────────────────────────────────────────────
+const curriculum = [
+  {chapter:"Foundations", lessons:[
+    {id:"intro", title:"What is MySQL?", xp:10, content:{
+      title:"What is MySQL?",
+      subtitle:"A relational database management system you'll use everywhere.",
+      body:`<h3>Overview</h3>
+MySQL is an open-source <b>Relational Database Management System (RDBMS)</b> that stores data in tables — think organized spreadsheets that can talk to each other.<br><br>
+<h3>Key Concepts</h3>
+• <b>Database</b> — A container holding many tables<br>
+• <b>Table</b> — Rows and columns of structured data<br>
+• <b>Row (Record)</b> — A single entry in a table<br>
+• <b>Column (Field)</b> — A named attribute (e.g., <code>name</code>, <code>age</code>)<br><br>
+<h3>Your First Command</h3>
+<div class="code-block"><span class="kw">SHOW</span> DATABASES;</div>
+This lists all databases on the server. Try it in the terminal!`,
+      tryCmd:"SHOW DATABASES;"
+    }},
+    {id:"create-db", title:"CREATE DATABASE", xp:20, content:{
+      title:"CREATE DATABASE",
+      subtitle:"Create your own database container.",
+      body:`<h3>Syntax</h3>
+<div class="code-block"><span class="kw">CREATE DATABASE</span> shop;<br><span class="kw">USE</span> shop;</div>
+<b>CREATE DATABASE</b> makes a new empty database.<br>
+<b>USE</b> selects it as the active one.<br><br>
+<h3>Rules</h3>
+• Names are case-insensitive on most systems<br>
+• No spaces — use underscores: <code>my_database</code><br>
+• Always end statements with a <code>;</code><br><br>
+<h3>Check Current Database</h3>
+<div class="code-block"><span class="kw">SELECT</span> DATABASE();</div>`,
+      tryCmd:"CREATE DATABASE shop; USE shop; SELECT DATABASE();"
+    }},
+    {id:"datatypes", title:"Data Types", xp:15, content:{
+      title:"MySQL Data Types",
+      subtitle:"Every column must have a type that defines what data it stores.",
+      body:`<h3>Common Types</h3>
+<b>Text</b><br>
+• <code>VARCHAR(n)</code> — Variable-length string up to n chars<br>
+• <code>TEXT</code> — Long text content<br>
+• <code>CHAR(n)</code> — Fixed-length string<br><br>
+<b>Numbers</b><br>
+• <code>INT</code> — Whole numbers (-2B to 2B)<br>
+• <code>DECIMAL(p,s)</code> — Precise decimals (e.g., prices)<br>
+• <code>FLOAT</code> — Approximate decimals<br><br>
+<b>Dates</b><br>
+• <code>DATE</code> — YYYY-MM-DD<br>
+• <code>DATETIME</code> — YYYY-MM-DD HH:MM:SS<br>
+• <code>TIMESTAMP</code> — Stores UTC time<br><br>
+<b>Other</b><br>
+• <code>BOOLEAN</code> — TRUE / FALSE (stored as 0/1)<br>`,
+      tryCmd:"SELECT 'Hello World' AS greeting, 42 AS answer, 3.14 AS pi;"
+    }},
+  ]},
+  {chapter:"Tables", lessons:[
+    {id:"create-table", title:"CREATE TABLE", xp:30, content:{
+      title:"CREATE TABLE",
+      subtitle:"Define the structure of your data.",
+      body:`<h3>Syntax</h3>
+<div class="code-block"><span class="kw">CREATE TABLE</span> students (<br>
+  id    <span class="cmt">INT</span> <span class="kw">PRIMARY KEY AUTO_INCREMENT</span>,<br>
+  name  <span class="cmt">VARCHAR(100)</span> <span class="kw">NOT NULL</span>,<br>
+  email <span class="cmt">VARCHAR(150)</span> <span class="kw">UNIQUE</span>,<br>
+  age   <span class="cmt">INT</span>,<br>
+  grade <span class="cmt">CHAR(1)</span> <span class="kw">DEFAULT</span> <span class="str">'A'</span><br>
+);</div>
+<h3>Key Constraints</h3>
+• <code>PRIMARY KEY</code> — Unique identifier for each row<br>
+• <code>AUTO_INCREMENT</code> — Auto-assign next integer<br>
+• <code>NOT NULL</code> — Value is required<br>
+• <code>UNIQUE</code> — No duplicates allowed<br>
+• <code>DEFAULT</code> — Value if none provided<br>`,
+      tryCmd:"CREATE TABLE students (id INT PRIMARY KEY AUTO_INCREMENT, name VARCHAR(100) NOT NULL, email VARCHAR(150) UNIQUE, age INT, grade CHAR(1) DEFAULT 'A');"
+    }},
+    {id:"insert", title:"INSERT INTO", xp:25, content:{
+      title:"INSERT INTO",
+      subtitle:"Add records to your table.",
+      body:`<h3>Single Row</h3>
+<div class="code-block"><span class="kw">INSERT INTO</span> students (name, email, age)<br>
+<span class="kw">VALUES</span> (<span class="str">'Alice'</span>, <span class="str">'alice@email.com'</span>, <span class="num">20</span>);</div>
+<h3>Multiple Rows</h3>
+<div class="code-block"><span class="kw">INSERT INTO</span> students (name, email, age)<br>
+<span class="kw">VALUES</span><br>
+  (<span class="str">'Bob'</span>,   <span class="str">'bob@email.com'</span>,   <span class="num">22</span>),<br>
+  (<span class="str">'Carol'</span>, <span class="str">'carol@email.com'</span>, <span class="num">21</span>),<br>
+  (<span class="str">'David'</span>, <span class="str">'david@email.com'</span>, <span class="num">19</span>);</div>
+<b>Tip:</b> If a column has <code>AUTO_INCREMENT</code> or a <code>DEFAULT</code>, you can omit it.`,
+      tryCmd:"INSERT INTO students (name, email, age) VALUES ('Alice', 'alice@email.com', 20), ('Bob', 'bob@email.com', 22), ('Carol', 'carol@email.com', 21);"
+    }},
+    {id:"select", title:"SELECT", xp:30, content:{
+      title:"SELECT",
+      subtitle:"Query and retrieve data from tables — the most used command.",
+      body:`<h3>Basic Select</h3>
+<div class="code-block"><span class="kw">SELECT</span> * <span class="kw">FROM</span> students;<br>
+<span class="kw">SELECT</span> name, age <span class="kw">FROM</span> students;</div>
+<h3>WHERE Clause</h3>
+<div class="code-block"><span class="kw">SELECT</span> * <span class="kw">FROM</span> students<br>
+<span class="kw">WHERE</span> age > <span class="num">20</span>;<br><br>
+<span class="kw">SELECT</span> * <span class="kw">FROM</span> students<br>
+<span class="kw">WHERE</span> name = <span class="str">'Alice'</span>;</div>
+<h3>Operators</h3>
+<code>=</code> <code>!=</code> <code>&lt;</code> <code>&gt;</code> <code>&lt;=</code> <code>&gt;=</code> <code>LIKE</code> <code>IN</code> <code>BETWEEN</code> <code>AND</code> <code>OR</code>`,
+      tryCmd:"SELECT * FROM students; SELECT name, age FROM students WHERE age > 20;"
+    }},
+    {id:"update", title:"UPDATE", xp:25, content:{
+      title:"UPDATE",
+      subtitle:"Modify existing records — always use WHERE!",
+      body:`<h3>Syntax</h3>
+<div class="code-block"><span class="kw">UPDATE</span> students<br>
+<span class="kw">SET</span> grade = <span class="str">'B'</span>, age = <span class="num">21</span><br>
+<span class="kw">WHERE</span> name = <span class="str">'Bob'</span>;</div>
+<div class="quiz-box" style="border-color:var(--red)">⚠️ <b>Warning!</b> Omitting WHERE updates ALL rows:<br>
+<code>UPDATE students SET grade = 'F';</code> — changes everyone's grade!</div>
+<h3>Update with Math</h3>
+<div class="code-block"><span class="kw">UPDATE</span> students<br>
+<span class="kw">SET</span> age = age + <span class="num">1</span><br>
+<span class="kw">WHERE</span> id = <span class="num">1</span>;</div>`,
+      tryCmd:"UPDATE students SET grade = 'B' WHERE name = 'Bob'; SELECT * FROM students;"
+    }},
+    {id:"delete", title:"DELETE", xp:25, content:{
+      title:"DELETE",
+      subtitle:"Remove rows from a table.",
+      body:`<h3>Syntax</h3>
+<div class="code-block"><span class="kw">DELETE FROM</span> students<br>
+<span class="kw">WHERE</span> id = <span class="num">3</span>;</div>
+<div class="quiz-box" style="border-color:var(--red)">⚠️ <b>Warning!</b> <code>DELETE FROM students;</code> deletes ALL rows with no undo!</div>
+<h3>TRUNCATE vs DELETE</h3>
+• <code>DELETE</code> — removes rows, can use WHERE, is logged<br>
+• <code>TRUNCATE</code> — removes ALL rows instantly, resets AUTO_INCREMENT<br><br>
+<div class="code-block"><span class="kw">TRUNCATE TABLE</span> students; <span class="cmt">-- fast empty</span></div>`,
+      tryCmd:"DELETE FROM students WHERE id = 3; SELECT * FROM students;"
+    }},
+  ]},
+  {chapter:"Querying", lessons:[
+    {id:"order-limit", title:"ORDER BY & LIMIT", xp:20, content:{
+      title:"ORDER BY & LIMIT",
+      subtitle:"Sort results and restrict how many rows come back.",
+      body:`<h3>ORDER BY</h3>
+<div class="code-block"><span class="kw">SELECT</span> * <span class="kw">FROM</span> students<br>
+<span class="kw">ORDER BY</span> age <span class="kw">DESC</span>;<br><br>
+<span class="kw">SELECT</span> * <span class="kw">FROM</span> students<br>
+<span class="kw">ORDER BY</span> name <span class="kw">ASC</span>;</div>
+<h3>LIMIT & OFFSET</h3>
+<div class="code-block"><span class="kw">SELECT</span> * <span class="kw">FROM</span> students <span class="kw">LIMIT</span> <span class="num">2</span>;<br><br>
+<span class="cmt">-- Skip 2, then take 2 (pagination)</span><br>
+<span class="kw">SELECT</span> * <span class="kw">FROM</span> students<br>
+<span class="kw">LIMIT</span> <span class="num">2</span> <span class="kw">OFFSET</span> <span class="num">2</span>;</div>`,
+      tryCmd:"SELECT * FROM students ORDER BY age DESC; SELECT * FROM students ORDER BY name ASC LIMIT 2;"
+    }},
+    {id:"aggregate", title:"Aggregate Functions", xp:35, content:{
+      title:"Aggregate Functions",
+      subtitle:"Compute statistics across many rows.",
+      body:`<h3>Functions</h3>
+<div class="code-block"><span class="kw">SELECT</span><br>
+  <span class="kw">COUNT</span>(*),<br>
+  <span class="kw">AVG</span>(age),<br>
+  <span class="kw">MAX</span>(age),<br>
+  <span class="kw">MIN</span>(age),<br>
+  <span class="kw">SUM</span>(age)<br>
+<span class="kw">FROM</span> students;</div>
+<h3>GROUP BY</h3>
+<div class="code-block"><span class="kw">SELECT</span> grade, <span class="kw">COUNT</span>(*) <span class="kw">AS</span> total<br>
+<span class="kw">FROM</span> students<br>
+<span class="kw">GROUP BY</span> grade<br>
+<span class="kw">HAVING COUNT</span>(*) > <span class="num">1</span>;</div>
+<b>HAVING</b> filters groups (like WHERE but for aggregates).`,
+      tryCmd:"SELECT COUNT(*) as total, AVG(age) as avg_age, MAX(age) as oldest FROM students; SELECT grade, COUNT(*) AS count FROM students GROUP BY grade;"
+    }},
+    {id:"joins", title:"JOIN Tables", xp:50, content:{
+      title:"JOIN",
+      subtitle:"Combine rows from two or more tables — the most powerful SQL concept.",
+      body:`<h3>Setup: courses table</h3>
+<div class="code-block"><span class="kw">CREATE TABLE</span> courses (<br>
+  id INT <span class="kw">PRIMARY KEY AUTO_INCREMENT</span>,<br>
+  student_id INT,<br>
+  course VARCHAR(100)<br>
+);<br>
+<span class="kw">INSERT INTO</span> courses (student_id, course)<br>
+<span class="kw">VALUES</span> (<span class="num">1</span>,<span class="str">'Math'</span>),(<span class="num">1</span>,<span class="str">'Physics'</span>),(<span class="num">2</span>,<span class="str">'Art'</span>);</div>
+<h3>INNER JOIN</h3>
+<div class="code-block"><span class="kw">SELECT</span> s.name, c.course<br>
+<span class="kw">FROM</span> students s<br>
+<span class="kw">INNER JOIN</span> courses c <span class="kw">ON</span> s.id = c.student_id;</div>
+<h3>LEFT JOIN</h3>
+<div class="code-block"><span class="kw">SELECT</span> s.name, c.course<br>
+<span class="kw">FROM</span> students s<br>
+<span class="kw">LEFT JOIN</span> courses c <span class="kw">ON</span> s.id = c.student_id;</div>
+Returns ALL students, even those with no courses (NULL).`,
+      tryCmd:"CREATE TABLE courses (id INT PRIMARY KEY AUTO_INCREMENT, student_id INT, course VARCHAR(100)); INSERT INTO courses (student_id, course) VALUES (1,'Math'),(1,'Physics'),(2,'Art');"
+    }},
+  ]},
+  {chapter:"Advanced", lessons:[
+    {id:"indexes", title:"Indexes", xp:30, content:{
+      title:"Indexes",
+      subtitle:"Speed up queries on large tables.",
+      body:`<h3>What is an Index?</h3>
+An index is like a book's index — it lets MySQL find rows without scanning every row.<br><br>
+<h3>Create an Index</h3>
+<div class="code-block"><span class="kw">CREATE INDEX</span> idx_name<br>
+<span class="kw">ON</span> students(name);<br><br>
+<span class="kw">CREATE UNIQUE INDEX</span> idx_email<br>
+<span class="kw">ON</span> students(email);</div>
+<h3>View Indexes</h3>
+<div class="code-block"><span class="kw">SHOW INDEX FROM</span> students;</div>
+<h3>When to Index</h3>
+✓ Columns in WHERE, JOIN, ORDER BY<br>
+✗ Columns that change often<br>
+✗ Small tables (full scan is faster)`,
+      tryCmd:"CREATE INDEX idx_name ON students(name); SHOW INDEX FROM students;"
+    }},
+    {id:"subquery", title:"Subqueries", xp:40, content:{
+      title:"Subqueries",
+      subtitle:"Queries nested inside other queries.",
+      body:`<h3>In WHERE</h3>
+<div class="code-block"><span class="kw">SELECT</span> * <span class="kw">FROM</span> students<br>
+<span class="kw">WHERE</span> age = (<br>
+  <span class="kw">SELECT MAX</span>(age) <span class="kw">FROM</span> students<br>
+);</div>
+<h3>IN Subquery</h3>
+<div class="code-block"><span class="kw">SELECT</span> * <span class="kw">FROM</span> students<br>
+<span class="kw">WHERE</span> id <span class="kw">IN</span> (<br>
+  <span class="kw">SELECT</span> student_id <span class="kw">FROM</span> courses<br>
+  <span class="kw">WHERE</span> course = <span class="str">'Math'</span><br>
+);</div>
+<h3>Correlated Subquery</h3>
+Runs once per outer row — powerful but can be slow.`,
+      tryCmd:"SELECT * FROM students WHERE age = (SELECT MAX(age) FROM students);"
+    }},
+    {id:"transactions", title:"Transactions", xp:45, content:{
+      title:"Transactions",
+      subtitle:"Group operations so they all succeed or all fail.",
+      body:`<h3>ACID Properties</h3>
+• <b>Atomicity</b> — All or nothing<br>
+• <b>Consistency</b> — Data stays valid<br>
+• <b>Isolation</b> — Concurrent transactions don't interfere<br>
+• <b>Durability</b> — Committed data survives crashes<br><br>
+<h3>Syntax</h3>
+<div class="code-block"><span class="kw">START TRANSACTION</span>;<br><br>
+<span class="kw">UPDATE</span> accounts <span class="kw">SET</span> balance = balance - <span class="num">100</span><br>
+  <span class="kw">WHERE</span> id = <span class="num">1</span>;<br>
+<span class="kw">UPDATE</span> accounts <span class="kw">SET</span> balance = balance + <span class="num">100</span><br>
+  <span class="kw">WHERE</span> id = <span class="num">2</span>;<br><br>
+<span class="kw">COMMIT</span>;   <span class="cmt">-- save changes</span><br>
+<span class="cmt">-- or ROLLBACK; to undo</span></div>`,
+      tryCmd:"START TRANSACTION; SELECT 'Transaction started — use COMMIT or ROLLBACK' AS status; ROLLBACK;"
+    }},
+  ]}
+];
+
+// ── STATE ─────────────────────────────────────────────────────────────────────
+let currentLesson = "intro";
+let completedLessons = new Set();
+let xp = 0;
+let history = [];
+let historyIdx = -1;
+let activeMode = 'learn';
+let activeTab = 'lesson';
+
+// ── VIRTUAL DB STATE ─────────────────────────────────────────────────────────
+let dbState = {
+  currentDb: "mysql_lab",
+  databases: ["mysql_lab", "information_schema", "mysql"],
+  tables: {
+    students: {
+      columns: [
+        {name:"id", type:"INT", extras:"PK AI"},
+        {name:"name", type:"VARCHAR(100)", extras:"NN"},
+        {name:"email", type:"VARCHAR(150)", extras:"UQ"},
+        {name:"age", type:"INT", extras:""},
+        {name:"grade", type:"CHAR(1)", extras:"DEF 'A'"}
+      ],
+      rows: [
+        {id:1, name:"Alice", email:"alice@email.com", age:20, grade:"A"},
+        {id:2, name:"Bob", email:"bob@email.com", age:22, grade:"A"},
+        {id:3, name:"Carol", email:"carol@email.com", age:21, grade:"A"},
+        {id:4, name:"David", email:"david@email.com", age:19, grade:"A"}
+      ],
+      autoIncrement: 5
+    }
+  }
+};
+
+// ── RENDER SIDEBAR ────────────────────────────────────────────────────────────
+function renderSidebar() {
+  const list = document.getElementById('lesson-list');
+  let html = '';
+  curriculum.forEach(ch => {
+    html += `<div class="chapter">
+      <div class="chapter-title">📂 ${ch.chapter}</div>`;
+    ch.lessons.forEach(l => {
+      const done = completedLessons.has(l.id);
+      const active = l.id === currentLesson;
+      html += `<div class="lesson-item ${active?'active':''} ${done?'done':''}" onclick="goLesson('${l.id}')">
+        <div class="lesson-dot"></div>
+        <span>${l.title}</span>
+        <span style="margin-left:auto;font-size:10px;color:var(--text3)">${l.xp}xp</span>
+      </div>`;
+    });
+    html += `</div>`;
+  });
+  list.innerHTML = html;
+}
+
+// ── RENDER LESSON ─────────────────────────────────────────────────────────────
+function renderLesson() {
+  const lesson = getLessonById(currentLesson);
+  if (!lesson) return;
+  const c = lesson.content;
+  const lessonDiv = document.getElementById('lesson-content');
+  lessonDiv.innerHTML = `<div class="fade-in">
+    <div class="lesson-title">${c.title}</div>
+    <div class="lesson-subtitle">${c.subtitle}</div>
+    <div class="lesson-body">${c.body}</div>
+    <div class="lesson-nav">
+      ${c.tryCmd ? `<button class="try-btn" onclick="tryCommand(\`${c.tryCmd.replace(/`/g,'\\`')}\`)">▶ Try in Terminal</button>` : ''}
+      <button class="nav-btn primary" onclick="completeLesson()">Mark Complete ✓</button>
+    </div>
+  </div>`;
+}
+
+function getLessonById(id) {
+  for (const ch of curriculum) {
+    for (const l of ch.lessons) {
+      if (l.id === id) return l;
+    }
+  }
+  return null;
+}
+
+function goLesson(id) {
+  currentLesson = id;
+  renderSidebar();
+  renderLesson();
+  if (activeTab === 'terminal') switchTab('lesson');
+}
+
+function completeLesson() {
+  const lesson = getLessonById(currentLesson);
+  if (!completedLessons.has(currentLesson)) {
+    completedLessons.add(currentLesson);
+    xp += lesson.xp;
+    document.getElementById('xp-badge').textContent = xp + ' XP';
+    const total = curriculum.reduce((s,ch)=>s+ch.lessons.length,0);
+    const pct = Math.round(completedLessons.size/total*100);
+    document.getElementById('progress-fill').style.width = pct+'%';
+    addLine(`<span class="output-ok">✓ Lesson "${lesson.content.title}" completed! +${lesson.xp} XP</span>`);
+  }
+  // advance to next
+  let found = false;
+  for (const ch of curriculum) {
+    for (let i=0; i<ch.lessons.length; i++) {
+      if (found) { goLesson(ch.lessons[i].id); return; }
+      if (ch.lessons[i].id === currentLesson) found = true;
+    }
+  }
+  renderSidebar();
+}
+
+function tryCommand(cmd) {
+  document.getElementById('cmd-input').value = cmd.split(';')[0] + ';';
+  switchTab('terminal');
+  document.getElementById('cmd-input').focus();
+}
+
+// ── SCHEMA RENDER ─────────────────────────────────────────────────────────────
+function renderSchema() {
+  const sc = document.getElementById('schema-content');
+  let html = `<div style="font-size:10px;color:var(--text3);padding:4px 2px 8px;">DB: <span style="color:var(--cyan)">${dbState.currentDb}</span></div>`;
+  const tables = dbState.tables;
+  if (Object.keys(tables).length === 0) {
+    html += `<div style="font-size:11px;color:var(--text3);padding:8px;text-align:center">No tables yet</div>`;
+  } else {
+    for (const [tname, tdata] of Object.entries(tables)) {
+      html += `<div class="table-card fade-in">
+        <div class="table-name">${tname} <span style="color:var(--text3);font-weight:400;font-size:9px">(${tdata.rows.length} rows)</span></div>`;
+      tdata.columns.forEach(col => {
+        html += `<div class="col-row">${col.name}${col.extras.includes('PK')?'<span class="col-pk">PK</span>':''} <span class="col-type">${col.type}</span></div>`;
+      });
+      html += `</div>`;
+    }
+  }
+  sc.innerHTML = html;
+}
+
+// ── TERMINAL ──────────────────────────────────────────────────────────────────
+const outputEl = document.getElementById('output');
+
+function addLine(html) {
+  const d = document.createElement('div');
+  d.className = 'line';
+  d.innerHTML = html;
+  outputEl.appendChild(d);
+  outputEl.scrollTop = outputEl.scrollHeight;
+}
+
+function addTable(columns, rows) {
+  if (!rows || rows.length === 0) {
+    addLine('<span class="output-info">Empty set (0 rows)</span>');
+    return;
+  }
+  const allCols = columns || Object.keys(rows[0]);
+  let html = '<div class="output-table"><table><thead><tr>';
+  allCols.forEach(c => html += `<th>${c}</th>`);
+  html += '</tr></thead><tbody>';
+  rows.forEach(r => {
+    html += '<tr>';
+    allCols.forEach(c => {
+      const v = r[c] === null ? '<span style="color:var(--text3)">NULL</span>' : r[c];
+      html += `<td>${v}</td>`;
+    });
+    html += '</tr>';
+  });
+  html += `</tbody></table><div style="font-size:11px;color:var(--text3);padding:4px 0">${rows.length} row${rows.length!==1?'s':''} in set</div></div>`;
+  addLine(html);
+}
+
+// ── SIMPLE SQL INTERPRETER ────────────────────────────────────────────────────
+function executeSql(rawInput) {
+  // Split on semicolons
+  const stmts = rawInput.split(';').map(s=>s.trim()).filter(s=>s.length>0);
+  stmts.forEach(stmt => {
+    addLine(`<span class="prompt-prefix">mysql&gt;</span> <span style="color:var(--text2)">${escHtml(stmt)};</span>`);
+    processStatement(stmt);
+  });
+}
+
+function escHtml(s){ return s.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;'); }
+
+function processStatement(sql) {
+  const up = sql.trim().toUpperCase();
+  const tok = sql.trim().split(/\s+/);
+  const cmd = tok[0].toUpperCase();
+
+  try {
+    if (cmd === 'SHOW') return handleShow(sql, up);
+    if (cmd === 'SELECT') return handleSelect(sql, up);
+    if (cmd === 'USE') return handleUse(tok);
+    if (cmd === 'CREATE') return handleCreate(sql, up);
+    if (cmd === 'INSERT') return handleInsert(sql, up);
+    if (cmd === 'UPDATE') return handleUpdate(sql, up);
+    if (cmd === 'DELETE') return handleDelete(sql, up);
+    if (cmd === 'DROP') return handleDrop(sql, up);
+    if (cmd === 'DESCRIBE' || cmd === 'DESC') return handleDescribe(tok);
+    if (cmd === 'TRUNCATE') return handleTruncate(tok);
+    if (cmd === 'START' || cmd === 'BEGIN') { addLine('<span class="output-ok">Query OK — transaction started (simulated)</span>'); return; }
+    if (cmd === 'COMMIT') { addLine('<span class="output-ok">Query OK — transaction committed (simulated)</span>'); return; }
+    if (cmd === 'ROLLBACK') { addLine('<span class="output-ok">Query OK — transaction rolled back (simulated)</span>'); return; }
+    if (up.startsWith('CREATE INDEX') || up.startsWith('CREATE UNIQUE INDEX')) return handleCreateIndex(sql);
+    if (up.startsWith('SHOW INDEX')) return handleShowIndex(tok);
+    // fallback: ask AI
+    askAI(sql);
+  } catch(e) {
+    addLine(`<span class="output-err">ERROR: ${escHtml(e.message)}</span>`);
+  }
+}
+
+function handleShow(sql, up) {
+  if (up.includes('DATABASES')) {
+    addTable(['Database'], dbState.databases.map(d=>({Database:d})));
+  } else if (up.includes('TABLES')) {
+    const tList = Object.keys(dbState.tables);
+    if (tList.length === 0) addLine('<span class="output-info">Empty set (no tables)</span>');
+    else addTable([`Tables_in_${dbState.currentDb}`], tList.map(t=>({[`Tables_in_${dbState.currentDb}`]:t})));
+  } else if (up.includes('CREATE TABLE')) {
+    const m = sql.match(/SHOW\s+CREATE\s+TABLE\s+(\w+)/i);
+    if (m) {
+      const t = dbState.tables[m[1].toLowerCase()];
+      if (!t) { addLine(`<span class="output-err">ERROR: Table '${m[1]}' not found</span>`); return; }
+      const cols = t.columns.map(c=>`  \`${c.name}\` ${c.type}${c.extras.includes('NN')?' NOT NULL':''}${c.extras.includes('PK')?' PRIMARY KEY':''}${c.extras.includes('AI')?' AUTO_INCREMENT':''}`).join(',\n');
+      addLine(`<pre style="color:var(--text);font-size:12px;background:var(--bg3);padding:12px;border-radius:6px;overflow-x:auto">CREATE TABLE \`${m[1]}\` (\n${cols}\n)</pre>`);
+    }
+  } else {
+    addLine(`<span class="output-info">Simulated: ${escHtml(sql)}</span>`);
+  }
+}
+
+function handleUse(tok) {
+  const db = tok[1];
+  dbState.currentDb = db;
+  document.getElementById('db-indicator').textContent = 'db: '+db;
+  addLine(`<span class="output-ok">Database changed to '${db}'</span>`);
+}
+
+// ── CREATE TABLE PARSER ───────────────────────────────────────────────────────
+function handleCreate(sql, up) {
+  if (up.startsWith('CREATE DATABASE')) {
+    const m = sql.match(/CREATE\s+DATABASE\s+(\w+)/i);
+    if (m) {
+      if (!dbState.databases.includes(m[1])) dbState.databases.push(m[1]);
+      addLine(`<span class="output-ok">Query OK, 1 row affected — Database '${m[1]}' created</span>`);
+    }
+    return;
+  }
+  if (up.startsWith('CREATE TABLE')) {
+    const m = sql.match(/CREATE\s+TABLE\s+(?:IF NOT EXISTS\s+)?(\w+)\s*\((.+)\)/is);
+    if (!m) { addLine('<span class="output-err">ERROR: syntax error in CREATE TABLE</span>'); return; }
+    const tname = m[1].toLowerCase();
+    const colDefs = parseColumnDefs(m[2]);
+    if (dbState.tables[tname]) { addLine(`<span class="output-err">ERROR: Table '${tname}' already exists</span>`); return; }
+    dbState.tables[tname] = { columns: colDefs, rows: [], autoIncrement: 1 };
+    addLine(`<span class="output-ok">Query OK, 0 rows affected — Table '${tname}' created</span>`);
+    renderSchema();
+    return;
+  }
+  addLine(`<span class="output-info">Simulated: ${escHtml(sql)}</span>`);
+}
+
+function parseColumnDefs(defs) {
+  // basic col def parser
+  const cols = [];
+  // split on commas not inside parens
+  const parts = [];
+  let depth=0, cur='';
+  for (const c of defs) {
+    if (c==='(') { depth++; cur+=c; }
+    else if (c===')') { depth--; cur+=c; }
+    else if (c===',' && depth===0) { parts.push(cur.trim()); cur=''; }
+    else cur+=c;
+  }
+  if (cur.trim()) parts.push(cur.trim());
+
+  parts.forEach(p => {
+    if (/^(PRIMARY KEY|UNIQUE KEY|KEY|INDEX|FOREIGN KEY|CONSTRAINT)/i.test(p)) return;
+    const up = p.toUpperCase();
+    const nameMatch = p.match(/^`?(\w+)`?\s+(\w+(?:\(\d+(?:,\d+)?\))?)/i);
+    if (!nameMatch) return;
+    const name = nameMatch[1];
+    const type = nameMatch[2].toUpperCase() + (p.match(/\(\d+(?:,\d+)?\)/) ? p.match(/\(\d+(?:,\d+)?\)/)[0] : '');
+    const extras = [
+      up.includes('PRIMARY KEY') ? 'PK' : '',
+      up.includes('AUTO_INCREMENT') ? 'AI' : '',
+      up.includes('NOT NULL') ? 'NN' : '',
+      up.includes('UNIQUE') ? 'UQ' : '',
+      up.includes('DEFAULT') ? 'DEF' : ''
+    ].filter(Boolean).join(' ');
+    cols.push({name, type, extras});
+  });
+  return cols;
+}
+
+// ── INSERT ────────────────────────────────────────────────────────────────────
+function handleInsert(sql) {
+  const m = sql.match(/INSERT\s+INTO\s+(\w+)\s*\(([^)]+)\)\s*VALUES\s*(.+)/is);
+  if (!m) { addLine('<span class="output-err">ERROR: Invalid INSERT syntax</span>'); return; }
+  const tname = m[1].toLowerCase();
+  const t = dbState.tables[tname];
+  if (!t) { addLine(`<span class="output-err">ERROR: Table '${tname}' doesn't exist</span>`); return; }
+
+  const cols = m[2].split(',').map(c=>c.trim().replace(/`/g,''));
+  const valuesStr = m[3];
+  // parse multiple value groups
+  const groups = [];
+  let d=0, cur='', inStr=false, strChar='';
+  for (let i=0; i<valuesStr.length; i++) {
+    const c = valuesStr[i];
+    if (!inStr && (c==="'" || c==='"')) { inStr=true; strChar=c; cur+=c; }
+    else if (inStr && c===strChar && valuesStr[i-1]!=='\\') { inStr=false; cur+=c; }
+    else if (!inStr && c==='(') { if(d===0){cur=''}; d++; if(d>1)cur+=c; }
+    else if (!inStr && c===')') { d--; if(d===0){groups.push(cur.trim());cur=''}else cur+=c; }
+    else if (!inStr && c===',' && d===0) {}
+    else cur+=c;
+  }
+
+  let inserted=0;
+  groups.forEach(grp => {
+    // parse values
+    const vals = [];
+    let s=false, sc='', cv='', dp=0;
+    for (let i=0; i<grp.length; i++) {
+      const c=grp[i];
+      if (!s && (c==="'" || c==='"')) { s=true; sc=c; cv+=c; }
+      else if (s && c===sc) { s=false; cv+=c; }
+      else if (!s && c===',' && dp===0) { vals.push(cv.trim()); cv=''; }
+      else cv+=c;
+    }
+    vals.push(cv.trim());
+
+    const row = {};
+    // auto-fill all cols
+    t.columns.forEach(col => {
+      if (col.extras.includes('AI')) { row[col.name] = t.autoIncrement; }
+      else if (col.extras.includes('DEF')) { row[col.name] = col.name === 'grade' ? 'A' : null; }
+      else row[col.name] = null;
+    });
+    cols.forEach((col, i) => {
+      let v = vals[i];
+      if (v === undefined) return;
+      v = v.replace(/^['"]|['"]$/g,'');
+      if (v === 'NULL') v = null;
+      else if (!isNaN(v) && v !== '') v = Number(v);
+      row[col] = v;
+    });
+    if (row['id'] === t.autoIncrement) t.autoIncrement++;
+    t.rows.push(row);
+    inserted++;
+  });
+
+  addLine(`<span class="output-ok">Query OK, ${inserted} row${inserted!==1?'s':''} affected</span>`);
+  renderSchema();
+}
+
+// ── SELECT ────────────────────────────────────────────────────────────────────
+function handleSelect(sql, up) {
+  // Handle special SELECTs
+  if (up.includes('DATABASE()')) { addTable(['DATABASE()'], [{'DATABASE()': dbState.currentDb}]); return; }
+  if (up.includes('VERSION()')) { addTable(['VERSION()'], [{'VERSION()': '8.0.35-simulated'}]); return; }
+  if (up.includes('NOW()')) { addTable(['NOW()'], [{'NOW()': new Date().toISOString().replace('T',' ').split('.')[0]}]); return; }
+
+  // Basic: SELECT <cols> FROM <table> [WHERE] [ORDER BY] [LIMIT] [OFFSET]
+  const fromMatch = sql.match(/FROM\s+(\w+)/i);
+  if (!fromMatch) {
+    // expression-only select
+    const cols = sql.replace(/SELECT/i,'').trim().split(',').map(e=>{
+      const alias = e.match(/AS\s+(\w+)/i);
+      const name = alias ? alias[1] : e.trim();
+      const val = e.trim().replace(/AS\s+\w+/i,'').trim().replace(/^['"]|['"]$/g,'');
+      return {name, val};
+    });
+    const row = {};
+    cols.forEach(c => { row[c.name] = isNaN(c.val) ? c.val : Number(c.val); });
+    addTable(cols.map(c=>c.name), [row]);
+    return;
+  }
+
+  const tname = fromMatch[1].toLowerCase();
+  // handle JOIN
+  const joinMatch = sql.match(/(?:INNER\s+|LEFT\s+|RIGHT\s+)?JOIN\s+(\w+)\s+\w*\s+ON\s+([^\s]+)\s*=\s*([^\s]+)/i);
+  if (joinMatch) return handleJoinSelect(sql, tname, joinMatch);
+
+  const t = dbState.tables[tname];
+  if (!t) { addLine(`<span class="output-err">ERROR: Table '${tname}' doesn't exist. Create it first!</span>`); return; }
+
+  let rows = [...t.rows];
+
+  // WHERE
+  const whereMatch = sql.match(/WHERE\s+(.+?)(?:\s+ORDER\s+BY|\s+GROUP\s+BY|\s+LIMIT|$)/is);
+  if (whereMatch) rows = applyWhere(rows, whereMatch[1]);
+
+  // GROUP BY + aggregate
+  const groupMatch = sql.match(/GROUP\s+BY\s+(\w+)/i);
+  const isAggregate = /COUNT\s*\(|SUM\s*\(|AVG\s*\(|MAX\s*\(|MIN\s*\(/.test(sql);
+
+  if (groupMatch) {
+    const groupCol = groupMatch[1];
+    const groups = {};
+    rows.forEach(r => { const k = r[groupCol]; if (!groups[k]) groups[k]=[]; groups[k].push(r); });
+
+    // parse select for aggregate
+    const selStr = sql.match(/SELECT\s+(.+?)\s+FROM/is)[1];
+    const selParts = splitSelect(selStr);
+    const result = [];
+    for (const [key, grpRows] of Object.entries(groups)) {
+      const row = {};
+      selParts.forEach(p => {
+        const alias = p.match(/\bAS\s+(\w+)/i);
+        const name = alias ? alias[1] : p.trim().replace(/\s+/g,' ');
+        const pu = p.toUpperCase();
+        if (pu.includes('COUNT(')) row[name] = grpRows.length;
+        else if (pu.includes('SUM(')) { const col=p.match(/SUM\s*\(\s*(\w+)/i)[1]; row[name]=grpRows.reduce((s,r)=>s+(r[col]||0),0); }
+        else if (pu.includes('AVG(')) { const col=p.match(/AVG\s*\(\s*(\w+)/i)[1]; row[name]=+(grpRows.reduce((s,r)=>s+(r[col]||0),0)/grpRows.length).toFixed(2); }
+        else if (pu.includes('MAX(')) { const col=p.match(/MAX\s*\(\s*(\w+)/i)[1]; row[name]=Math.max(...grpRows.map(r=>r[col])); }
+        else if (pu.includes('MIN(')) { const col=p.match(/MIN\s*\(\s*(\w+)/i)[1]; row[name]=Math.min(...grpRows.map(r=>r[col])); }
+        else row[name] = key;
+      });
+      result.push(row);
+    }
+    // HAVING
+    const havingMatch = sql.match(/HAVING\s+(.+?)(?:\s+ORDER\s+BY|\s+LIMIT|$)/is);
+    let filtered = result;
+    if (havingMatch) {
+      const hav = havingMatch[1];
+      const cntMatch = hav.match(/COUNT\s*\(\s*\*\s*\)\s*([><=!]+)\s*(\d+)/i);
+      if (cntMatch) {
+        const op = cntMatch[1], val = Number(cntMatch[2]);
+        const countKey = result[0] ? Object.keys(result[0]).find(k=>/count/i.test(k)||typeof result[0][k]==='number') : null;
+        if (countKey) filtered = result.filter(r => compare(r[countKey], op, val));
+      }
+    }
+    addTable(null, filtered);
+    return;
+  }
+
+  if (isAggregate && !groupMatch) {
+    const selStr = sql.match(/SELECT\s+(.+?)\s+FROM/is)[1];
+    const selParts = splitSelect(selStr);
+    const row = {};
+    selParts.forEach(p => {
+      const alias = p.match(/\bAS\s+(\w+)/i);
+      const name = alias ? alias[1] : p.trim();
+      const pu = p.toUpperCase();
+      if (pu.includes('COUNT(')) row[name] = rows.length;
+      else if (pu.includes('SUM(')) { const col=p.match(/SUM\s*\(\s*(\w+)/i)[1]; row[name]=rows.reduce((s,r)=>s+(r[col]||0),0); }
+      else if (pu.includes('AVG(')) { const col=p.match(/AVG\s*\(\s*(\w+)/i)[1]; row[name]=+(rows.reduce((s,r)=>s+(r[col]||0),0)/rows.length).toFixed(2); }
+      else if (pu.includes('MAX(')) { const col=p.match(/MAX\s*\(\s*(\w+)/i)[1]; row[name]=rows.length?Math.max(...rows.map(r=>r[col])):null; }
+      else if (pu.includes('MIN(')) { const col=p.match(/MIN\s*\(\s*(\w+)/i)[1]; row[name]=rows.length?Math.min(...rows.map(r=>r[col])):null; }
+      else row[name] = rows.length ? rows[0][name] : null;
+    });
+    addTable(null,[row]);
+    return;
+  }
+
+  // ORDER BY
+  const orderMatch = sql.match(/ORDER\s+BY\s+(\w+)(?:\s+(ASC|DESC))?/i);
+  if (orderMatch) {
+    const col = orderMatch[1], dir = (orderMatch[2]||'ASC').toUpperCase();
+    rows.sort((a,b)=>{
+      const av=a[col], bv=b[col];
+      if (av===null) return 1; if (bv===null) return -1;
+      return dir==='ASC' ? (av>bv?1:-1) : (av<bv?1:-1);
+    });
+  }
+
+  // LIMIT/OFFSET
+  const limitMatch = sql.match(/LIMIT\s+(\d+)(?:\s+OFFSET\s+(\d+))?/i);
+  if (limitMatch) {
+    const lim = Number(limitMatch[1]), off = Number(limitMatch[2]||0);
+    rows = rows.slice(off, off+lim);
+  }
+
+  // SELECT cols
+  const selStr = sql.match(/SELECT\s+(.+?)\s+FROM/is)[1].trim();
+  if (selStr === '*') {
+    addTable(t.columns.map(c=>c.name), rows);
+  } else {
+    const parts = splitSelect(selStr);
+    const colNames = parts.map(p=>{
+      const alias = p.match(/AS\s+(\w+)/i);
+      return alias ? alias[1] : p.trim().replace(/^\w+\./, '');
+    });
+    const mapped = rows.map(r => {
+      const nr={};
+      parts.forEach((p,i)=>{
+        const rawCol = p.trim().replace(/AS\s+\w+/i,'').trim().replace(/^\w+\./, '');
+        nr[colNames[i]] = r[rawCol] !== undefined ? r[rawCol] : null;
+      });
+      return nr;
+    });
+    addTable(colNames, mapped);
+  }
+}
+
+function splitSelect(s) {
+  const parts=[]; let d=0,cur='';
+  for(const c of s){if(c==='(')d++;else if(c===')')d--;else if(c===','&&d===0){parts.push(cur.trim());cur='';continue;}cur+=c;}
+  if(cur.trim())parts.push(cur.trim());
+  return parts;
+}
+
+function handleJoinSelect(sql, t1name, joinMatch) {
+  const t2name = joinMatch[1].toLowerCase();
+  const t1 = dbState.tables[t1name];
+  const t2 = dbState.tables[t2name];
+  if (!t1) { addLine(`<span class="output-err">ERROR: Table '${t1name}' doesn't exist</span>`); return; }
+  if (!t2) { addLine(`<span class="output-err">ERROR: Table '${t2name}' doesn't exist</span>`); return; }
+
+  const isLeft = /LEFT\s+JOIN/i.test(sql);
+  // parse ON condition
+  const onLeft = joinMatch[2].replace(/^\w+\./,'');
+  const onRight = joinMatch[3].replace(/^\w+\./,'');
+
+  const joined = [];
+  t1.rows.forEach(r1 => {
+    const matches = t2.rows.filter(r2 => r1[onLeft] === r2[onRight]);
+    if (matches.length) {
+      matches.forEach(r2 => {
+        const row={};
+        t1.columns.forEach(c => row[`${t1name}.${c.name}`]=r1[c.name]);
+        t2.columns.forEach(c => row[`${t2name}.${c.name}`]=r2[c.name]);
+        joined.push(row);
+      });
+    } else if (isLeft) {
+      const row={};
+      t1.columns.forEach(c => row[`${t1name}.${c.name}`]=r1[c.name]);
+      t2.columns.forEach(c => row[`${t2name}.${c.name}`]=null);
+      joined.push(row);
+    }
+  });
+
+  // determine output columns from SELECT
+  const selStr = sql.match(/SELECT\s+(.+?)\s+FROM/is)[1].trim();
+  if (selStr === '*') {
+    addTable(Object.keys(joined[0]||{}), joined);
+  } else {
+    const parts = splitSelect(selStr);
+    const colNames = parts.map(p=>{
+      const a=p.match(/AS\s+(\w+)/i); return a?a[1]:p.trim().replace(/AS\s+\w+/i,'').trim();
+    });
+    const mapped = joined.map(r=>{
+      const nr={};
+      parts.forEach((p,i)=>{
+        const rawCol = p.trim().replace(/AS\s+\w+/i,'').trim();
+        // try exact, then without alias prefix
+        let v = r[rawCol];
+        if (v===undefined) {
+          // find first matching suffix
+          const key = Object.keys(r).find(k=>k.endsWith('.'+rawCol.split('.').pop()));
+          v = key ? r[key] : null;
+        }
+        nr[colNames[i]] = v;
+      });
+      return nr;
+    });
+    addTable(colNames, mapped);
+  }
+}
+
+function applyWhere(rows, condition) {
+  // Handle IN (...)
+  const inMatch = condition.match(/(\w+)\s+IN\s*\(([^)]+)\)/i);
+  if (inMatch) {
+    const col=inMatch[1];
+    const vals = inMatch[2].split(',').map(v=>v.trim().replace(/^['"]|['"]$/g,''));
+    return rows.filter(r=>vals.includes(String(r[col])));
+  }
+  // BETWEEN
+  const betMatch = condition.match(/(\w+)\s+BETWEEN\s+(.+?)\s+AND\s+(.+)/i);
+  if (betMatch) {
+    const col=betMatch[1], lo=parseVal(betMatch[2].trim()), hi=parseVal(betMatch[3].trim());
+    return rows.filter(r=>r[col]>=lo && r[col]<=hi);
+  }
+  // LIKE
+  const likeMatch = condition.match(/(\w+)\s+LIKE\s+['"]([^'"]+)['"]/i);
+  if (likeMatch) {
+    const col=likeMatch[1], pat=likeMatch[2].replace(/%/g,'.*').replace(/_/g,'.');
+    const re = new RegExp('^'+pat+'$','i');
+    return rows.filter(r=>re.test(String(r[col]||'')));
+  }
+  // AND / OR
+  if (/\bAND\b/i.test(condition)) {
+    const parts = condition.split(/\bAND\b/i);
+    return parts.reduce((r,p)=>applyWhere(r,p.trim()),rows);
+  }
+  if (/\bOR\b/i.test(condition)) {
+    const parts = condition.split(/\bOR\b/i);
+    const sets = parts.map(p=>applyWhere(rows,p.trim()));
+    return [...new Map(sets.flat().map(r=>[r.id,r])).values()];
+  }
+  // Simple comparison
+  const cmpMatch = condition.match(/(\w+)\s*([><=!]+|LIKE)\s*(.+)/i);
+  if (cmpMatch) {
+    const col=cmpMatch[1], op=cmpMatch[2], val=parseVal(cmpMatch[3].trim());
+    return rows.filter(r=>compare(r[col],op,val));
+  }
+  return rows;
+}
+
+function parseVal(s){ s=s.replace(/^['"]|['"]$/g,''); return isNaN(s)?s:Number(s); }
+function compare(a,op,b){
+  switch(op){
+    case '=': return a==b;
+    case '!=': case '<>': return a!=b;
+    case '>': return a>b;
+    case '>=': return a>=b;
+    case '<': return a<b;
+    case '<=': return a<=b;
+    default: return false;
+  }
+}
+
+// ── UPDATE ────────────────────────────────────────────────────────────────────
+function handleUpdate(sql) {
+  const m = sql.match(/UPDATE\s+(\w+)\s+SET\s+(.+?)(?:\s+WHERE\s+(.+))?$/is);
+  if (!m) { addLine('<span class="output-err">ERROR: Invalid UPDATE syntax</span>'); return; }
+  const tname=m[1].toLowerCase(), setStr=m[2], whereStr=m[3];
+  const t=dbState.tables[tname];
+  if (!t) { addLine(`<span class="output-err">ERROR: Table '${tname}' doesn't exist</span>`); return; }
+
+  let targets = whereStr ? applyWhere(t.rows, whereStr) : t.rows;
+  const setPairs = setStr.split(',').map(s=>s.trim());
+  targets.forEach(row => {
+    setPairs.forEach(pair => {
+      const pm = pair.match(/(\w+)\s*=\s*(.+)/);
+      if (!pm) return;
+      const col=pm[1].trim(), valRaw=pm[2].trim();
+      // handle expressions like age = age + 1
+      const exprM = valRaw.match(/(\w+)\s*([+\-*\/])\s*(\d+)/);
+      if (exprM && exprM[1] === col) {
+        const n=Number(exprM[3]);
+        if (exprM[2]==='+') row[col]+=n;
+        else if (exprM[2]==='-') row[col]-=n;
+        else if (exprM[2]==='*') row[col]*=n;
+        else if (exprM[2]==='/') row[col]/=n;
+      } else {
+        row[col] = parseVal(valRaw);
+      }
+    });
+  });
+  addLine(`<span class="output-ok">Query OK, ${targets.length} row${targets.length!==1?'s':''} affected</span>`);
+}
+
+// ── DELETE ────────────────────────────────────────────────────────────────────
+function handleDelete(sql) {
+  const m = sql.match(/DELETE\s+FROM\s+(\w+)(?:\s+WHERE\s+(.+))?/is);
+  if (!m) { addLine('<span class="output-err">ERROR: Invalid DELETE syntax</span>'); return; }
+  const tname=m[1].toLowerCase(), whereStr=m[2];
+  const t=dbState.tables[tname];
+  if (!t) { addLine(`<span class="output-err">ERROR: Table '${tname}' doesn't exist</span>`); return; }
+  const before=t.rows.length;
+  if (whereStr) {
+    const toDelete = applyWhere(t.rows, whereStr);
+    t.rows = t.rows.filter(r=>!toDelete.includes(r));
+  } else {
+    t.rows = [];
+  }
+  const deleted=before-t.rows.length;
+  addLine(`<span class="output-ok">Query OK, ${deleted} row${deleted!==1?'s':''} affected</span>`);
+  renderSchema();
+}
+
+function handleDrop(sql) {
+  const m = sql.match(/DROP\s+TABLE\s+(?:IF EXISTS\s+)?(\w+)/i);
+  if (m) {
+    const tname=m[1].toLowerCase();
+    if (dbState.tables[tname]) { delete dbState.tables[tname]; addLine(`<span class="output-ok">Query OK — Table '${tname}' dropped</span>`); renderSchema(); }
+    else addLine(`<span class="output-err">ERROR: Unknown table '${tname}'</span>`);
+  }
+}
+
+function handleDescribe(tok) {
+  const tname=(tok[1]||'').toLowerCase();
+  const t=dbState.tables[tname];
+  if (!t) { addLine(`<span class="output-err">ERROR: Table '${tname}' doesn't exist</span>`); return; }
+  const rows=t.columns.map(c=>({Field:c.name,Type:c.type,Null:c.extras.includes('NN')?'NO':'YES',Key:c.extras.includes('PK')?'PRI':c.extras.includes('UQ')?'UNI':'',Default:c.extras.includes('DEF')?'value':'NULL',Extra:c.extras.includes('AI')?'auto_increment':''}));
+  addTable(['Field','Type','Null','Key','Default','Extra'],rows);
+}
+
+function handleTruncate(tok) {
+  const tname=(tok[2]||tok[1]||'').toLowerCase();
+  const t=dbState.tables[tname];
+  if (!t) { addLine(`<span class="output-err">ERROR: Table '${tname}' doesn't exist</span>`); return; }
+  t.rows=[]; t.autoIncrement=1;
+  addLine(`<span class="output-ok">Query OK — Table '${tname}' truncated</span>`);
+  renderSchema();
+}
+
+function handleCreateIndex(sql) {
+  addLine(`<span class="output-ok">Query OK — Index created (simulated)</span>`);
+}
+
+function handleShowIndex(tok) {
+  const tname=(tok[3]||'').toLowerCase();
+  const t=dbState.tables[tname];
+  if (!t) { addLine(`<span class="output-err">ERROR: Table '${tname}' doesn't exist</span>`); return; }
+  const pkCol = t.columns.find(c=>c.extras.includes('PK'));
+  const rows=[{Table:tname,Non_unique:0,Key_name:'PRIMARY',Seq:1,Column_name:pkCol?pkCol.name:'id',Collation:'A',Cardinality:t.rows.length,Index_type:'BTREE'}];
+  const uqCol = t.columns.find(c=>c.extras.includes('UQ'));
+  if (uqCol) rows.push({Table:tname,Non_unique:0,Key_name:'idx_'+uqCol.name,Seq:1,Column_name:uqCol.name,Collation:'A',Cardinality:t.rows.length,Index_type:'BTREE'});
+  addTable(['Table','Non_unique','Key_name','Seq','Column_name','Collation','Cardinality','Index_type'],rows);
+}
+
+// ── AI FALLBACK ───────────────────────────────────────────────────────────────
+async function askAI(sql) {
+  const loadId = 'loading-'+Date.now();
+  addLine(`<span class="ai-loading" id="${loadId}">⟳ Thinking...</span>`);
+
+  const systemPrompt = `You are a MySQL server simulator for a learning environment. The user is typing SQL commands.
+Current database: ${dbState.currentDb}
+Tables: ${JSON.stringify(Object.fromEntries(Object.entries(dbState.tables).map(([k,v])=>[k,{columns:v.columns,rowCount:v.rows.length}])))}
+
+Respond EXACTLY as a MySQL terminal would. For queries that would return data, produce realistic example data in a plain-text ASCII table format.
+For DDL or DML, respond with "Query OK, N rows affected".
+For errors, respond with "ERROR N (XXXXX): description".
+Keep responses concise. If the SQL is educational, add one short note as a MySQL comment: -- note here
+Never break character. Never say you are an AI.`;
+
+  try {
+    const resp = await fetch('https://api.anthropic.com/v1/messages', {
+      method:'POST',
+      headers:{'Content-Type':'application/json'},
+      body: JSON.stringify({
+        model:'claude-sonnet-4-20250514',
+        max_tokens:1000,
+        system: systemPrompt,
+        messages:[{role:'user',content:sql}]
+      })
+    });
+    const data = await resp.json();
+    document.getElementById(loadId)?.remove();
+    const text = data.content?.[0]?.text || 'No response';
+    // format the text
+    const lines = text.split('\n');
+    lines.forEach(line => {
+      if (line.startsWith('ERROR')) addLine(`<span class="output-err">${escHtml(line)}</span>`);
+      else if (line.startsWith('Query OK')) addLine(`<span class="output-ok">${escHtml(line)}</span>`);
+      else if (line.startsWith('--')) addLine(`<span class="output-hint">${escHtml(line)}</span>`);
+      else if (line.trim()) addLine(`<span class="output-text">${escHtml(line)}</span>`);
+    });
+  } catch(e) {
+    document.getElementById(loadId)?.remove();
+    addLine(`<span class="output-err">Connection error — check API access</span>`);
+  }
+}
+
+// ── QUIZ MODE ─────────────────────────────────────────────────────────────────
+const quizzes = [
+  {q:"Which SQL keyword retrieves data from a table?",opts:["GET","FETCH","SELECT","RETRIEVE"],ans:2},
+  {q:"Which clause filters rows in a SELECT statement?",opts:["FILTER","WHERE","HAVING","LIMIT"],ans:1},
+  {q:"What does PRIMARY KEY ensure?",opts:["Data is encrypted","Values are unique and NOT NULL","Values can repeat","Column stores integers only"],ans:1},
+  {q:"Which statement removes a table entirely?",opts:["DELETE TABLE","REMOVE TABLE","DROP TABLE","ERASE TABLE"],ans:2},
+  {q:"What does AUTO_INCREMENT do?",opts:["Increments all rows by 1","Automatically assigns the next integer to a column","Sorts data automatically","Creates an index automatically"],ans:1},
+  {q:"Which JOIN returns ALL rows from the left table, even without matches?",opts:["INNER JOIN","CROSS JOIN","RIGHT JOIN","LEFT JOIN"],ans:3},
+  {q:"What is the correct ORDER BY for newest-first date?",opts:["ORDER BY date ASC","ORDER BY date DESC","ORDER BY date FIRST","ORDER BY date LATEST"],ans:1},
+  {q:"Which function counts the number of rows?",opts:["SUM()","TOTAL()","COUNT()","NUM()"],ans:2},
+];
+let quizIdx=0, quizScore=0;
+
+function renderQuiz() {
+  const q = quizzes[quizIdx % quizzes.length];
+  const lessonView = document.getElementById('lesson-content');
+  lessonView.innerHTML = `<div class="fade-in">
+    <div class="lesson-title">Quiz</div>
+    <div class="lesson-subtitle">Question ${quizIdx+1} of ${quizzes.length} • Score: ${quizScore}</div>
+    <div class="quiz-box">
+      <div class="quiz-q">${q.q}</div>
+      <div class="quiz-options">
+        ${q.opts.map((o,i)=>`<div class="quiz-opt" id="qopt${i}" onclick="answerQuiz(${i})">${String.fromCharCode(65+i)}. ${o}</div>`).join('')}
+      </div>
+    </div>
+  </div>`;
+}
+
+function answerQuiz(idx) {
+  const q = quizzes[quizIdx % quizzes.length];
+  document.querySelectorAll('.quiz-opt').forEach(el=>el.style.pointerEvents='none');
+  const correctEl = document.getElementById('qopt'+q.ans);
+  const chosenEl = document.getElementById('qopt'+idx);
+  if (idx === q.ans) {
+    chosenEl.classList.add('correct');
+    quizScore++;
+    addLine(`<span class="output-ok">✓ Correct! +1 point</span>`);
+  } else {
+    chosenEl.classList.add('wrong');
+    correctEl.classList.add('correct');
+    addLine(`<span class="output-err">✗ Wrong. Correct: ${q.opts[q.ans]}</span>`);
+  }
+  setTimeout(()=>{ quizIdx++; renderQuiz(); }, 1200);
+}
+
+// ── MODE / TAB SWITCHING ──────────────────────────────────────────────────────
+function switchMode(mode) {
+  activeMode = mode;
+  document.querySelectorAll('.nav-tab').forEach(t=>t.classList.remove('active'));
+  event.target.classList.add('active');
+  if (mode === 'quiz') renderQuiz();
+  else if (mode === 'learn') renderLesson();
+  else {
+    document.getElementById('lesson-content').innerHTML = `<div class="lesson-content fade-in">
+      <div class="lesson-title">Sandbox Mode</div>
+      <div class="lesson-subtitle">Free-play with the MySQL terminal. All commands available.</div>
+      <div class="lesson-body">
+        The schema panel shows your current tables. Type any SQL command in the terminal below.<br><br>
+        <b>Try:</b> <code>SHOW TABLES;</code> or <code>SELECT * FROM students;</code> or create new tables!
+      </div>
+    </div>`;
+  }
+}
+
+function switchTab(tab) {
+  activeTab = tab;
+  document.querySelectorAll('.view-tab').forEach(t=>t.classList.remove('active'));
+  document.querySelectorAll('.view-tab')[tab==='lesson'?0:1].classList.add('active');
+  document.getElementById('lesson-view').style.display = tab==='lesson'?'':'none';
+  document.getElementById('terminal-area').style.flex = tab==='lesson'?'0 0 55%':'1';
+}
+
+// ── INPUT HANDLING ─────────────────────────────────────────────────────────────
+function runCmd() {
+  const input = document.getElementById('cmd-input');
+  const val = input.value.trim();
+  if (!val) return;
+  history.unshift(val);
+  historyIdx = -1;
+  input.value = '';
+  executeSql(val);
+  switchTab('terminal');
+}
+
+document.getElementById('cmd-input').addEventListener('keydown', e => {
+  if (e.key === 'Enter') { runCmd(); return; }
+  if (e.key === 'ArrowUp') {
+    historyIdx = Math.min(historyIdx+1, history.length-1);
+    e.currentTarget.value = history[historyIdx]||'';
+    e.preventDefault();
+  }
+  if (e.key === 'ArrowDown') {
+    historyIdx = Math.max(historyIdx-1, -1);
+    e.currentTarget.value = historyIdx>=0 ? history[historyIdx] : '';
+    e.preventDefault();
+  }
+  if (e.key === 'Tab') {
+    e.preventDefault();
+    const val = e.currentTarget.value.toUpperCase();
+    const keywords = ['SELECT','FROM','WHERE','INSERT INTO','UPDATE','DELETE FROM','CREATE TABLE','CREATE DATABASE','DROP TABLE','SHOW TABLES','SHOW DATABASES','ORDER BY','GROUP BY','HAVING','LIMIT','JOIN','INNER JOIN','LEFT JOIN','RIGHT JOIN','ON','SET','VALUES','AND','OR','NOT','NULL','PRIMARY KEY','AUTO_INCREMENT','NOT NULL','UNIQUE','DEFAULT','DESCRIBE','TRUNCATE','COMMIT','ROLLBACK','START TRANSACTION'];
+    const lastWord = val.split(/\s+/).pop();
+    const match = keywords.find(k=>k.startsWith(lastWord) && k!==lastWord);
+    if (match) e.currentTarget.value = e.currentTarget.value.slice(0,-lastWord.length)+match+' ';
+  }
+});
+
+// ── INIT ──────────────────────────────────────────────────────────────────────
+function init() {
+  renderSidebar();
+  renderLesson();
+  renderSchema();
+
+  // Welcome message
+  addLine(`<span style="color:var(--purple);font-weight:600">MySQL Lab v8.0 — Interactive Learning Environment</span>`);
+  addLine(`<span class="output-hint">Type SQL commands below. Use the lessons on the left to guide you.</span>`);
+  addLine(`<span class="output-hint">Tip: Press Tab for autocompletion, ↑↓ for history.</span>`);
+  addLine(`<span class="output-ok">Connected to: mysql_lab | Tables: students (4 rows preloaded)</span>`);
+  addLine('');
+  addLine(`<span class="prompt-prefix">mysql&gt;</span> <span style="color:var(--text2)">SELECT 'Welcome to MySQL Lab!' AS message, NOW() AS time;</span>`);
+  addTable(['message','time'],[{message:'Welcome to MySQL Lab!',time:new Date().toISOString().replace('T',' ').split('.')[0]}]);
+  addLine('');
+}
+
+init();
+</script>
+</body>
+</html>
